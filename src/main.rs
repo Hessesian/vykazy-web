@@ -1,10 +1,10 @@
 use base64::encode;
 use gloo::file::callbacks::FileReader;
 use gloo::file::File;
-use vykaz_web::{parse_text, InputType};
 use std::collections::HashMap;
 use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
 use yew::html::TargetCast;
+use vykaz_web::*;
 use yew::{html, Callback, Component, Context, Html};
 
 struct FileDetails {
@@ -72,7 +72,7 @@ impl Component for App {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div id="wrapper">
-                <p id="title">{ "Upload Your Files To The Cloud" }</p>
+                <p id="title">{ "Timesheet Converter" }</p>
                 <label for="file-upload">
                     <div
                         id="drop-container"
@@ -89,7 +89,7 @@ impl Component for App {
                         })}
                     >
                         <i class="fa fa-cloud-upload"></i>
-                        <p>{"Drop your images here or click to select"}</p>
+                        <p>{"Drop your file here or click to select"}</p>
                     </div>
                 </label>
                 <input
@@ -123,7 +123,7 @@ impl App {
                             <source src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} type={file.file_type.clone()}/>
                         </video>
                     } else if file.file_type.contains("pdf") {
-                <a href ={format!("data:{};base64,{}", "text/csv", encode(parse_text(InputType::MEM(&file.data)).unwrap()))} download="File.csv">
+                <a href ={format!("data:{};base64,{}", "text/csv", encode(parse_text(InputType::MEM(&file.data)).unwrap()))}>
                 {"Download"}
                 </a>
             }
