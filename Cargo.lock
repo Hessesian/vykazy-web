@@ -1265,9 +1265,19 @@ dependencies = [
  "log",
  "pdf-extract",
  "regex",
+ "vykazy",
  "wasm-logger",
  "web-sys",
  "yew",
+]
+
+[[package]]
+name = "vykazy"
+version = "0.1.0"
+source = "git+https://github.com/Hessesian/vykaz-gen.git#06b8cc37911b13733dd31b5c42e4b8bd24c5ba61"
+dependencies = [
+ "pdf-extract",
+ "regex",
 ]
 
 [[package]]

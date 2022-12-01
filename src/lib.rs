@@ -1,53 +1,148 @@
-use std::{path::{PathBuf}, io::Read};
+use base64::encode;
+use gloo::file::callbacks::FileReader;
+use gloo::file::File;
+use std::collections::HashMap;
+use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
+use yew::html::TargetCast;
+use vykazy::*;
+use yew::{html, Callback, Component, Context, Html};
 
-use regex::Regex;
-
-pub enum InputType<'a>{
-    MEM(&'a [u8]),
-    FROM(Box<dyn Read>),
-    PATH(PathBuf)
+struct FileDetails {
+    name: String,
+    file_type: String,
+    data: Vec<u8>,
 }
 
-pub fn parse_text(data: InputType)-> Result<String, String>{
-    let lines = match data {
-        InputType::MEM(p) => pdf_extract::extract_text_mem(p).unwrap(),
-        InputType::FROM(p) => pdf_extract::extract_text_from(p).unwrap(),
-        InputType::PATH(p) => pdf_extract::extract_text(p).unwrap(),
-    };
+pub enum Msg {
+    Loaded(String, String, Vec<u8>),
+    Files(Vec<File>),
+}
 
-    let date = Regex::new(r"^\d{2}.\d{2}.\d{4}$").unwrap();
-    let name = Regex::new(r"^[A-Z][a-z]* [A-Z][a-z]*$").unwrap();
-    let hours = Regex::new(r"^\d+$").unwrap();
+pub struct App {
+    readers: HashMap<String, FileReader>,
+    files: Vec<FileDetails>,
+}
 
-    let iter = lines
-        .lines()
-        .map(|l| l.replace("\n\n", ""))
-        .skip_while(|l| !l.contains("Summary of Worklogs"))
-        .filter(|l| !l.is_empty());
+impl Component for App {
+    type Message = Msg;
+    type Properties = ();
 
-    let mut names = iter.clone().filter(|l| name.is_match(l));
-    let mut dates = iter.clone().filter(|l| date.is_match(l));
-    let mut hours = iter.clone().filter(|l| hours.is_match(l));
-    let mut output = String::new();
-    loop {
-        let Some(date)= dates.next() else {
-            break;
-        };
-        let Some(name) = names.next() else {
-            break;
-        };
-        let Some(hours) = hours.next() else {
-            break;
-        };
-        let (first, last) = name.split_once(' ').unwrap();
-        output += &format!(
-            "{} {},{} 9:00,{} {}:00,9914,MONETA Mobile devs.,Ostatní,Otevřený,Mobile dev.\n",
-            last,
-            first,
-            date,
-            date,
-            9 + hours.parse::<i32>().unwrap()
-        );
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            readers: HashMap::default(),
+            files: Vec::default(),
+        }
     }
-    Ok(output)
+
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::Loaded(file_name, file_type, data) => {
+                self.files.push(FileDetails {
+                    data,
+                    file_type,
+                    name: file_name.clone(),
+                });
+                self.readers.remove(&file_name);
+                true
+            }
+            Msg::Files(files) => {
+                for file in files.into_iter() {
+                    let file_name = file.name();
+                    let file_type = file.raw_mime_type();
+
+                    let task = {
+                        let link = ctx.link().clone();
+                        let file_name = file_name.clone();
+
+                        gloo::file::callbacks::read_as_bytes(&file, move |res| {
+                            link.send_message(Msg::Loaded(
+                                file_name,
+                                file_type,
+                                res.expect("failed to read file"),
+                            ))
+                        })
+                    };
+                    self.readers.insert(file_name, task);
+                }
+                true
+            }
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div id="wrapper">
+                <p id="title">{ "Timesheet Converter" }</p>
+                <label for="file-upload">
+                    <div
+                        id="drop-container"
+                        ondrop={ctx.link().callback(|event: DragEvent| {
+                            event.prevent_default();
+                            let files = event.data_transfer().unwrap().files();
+                            Self::upload_files(files)
+                        })}
+                        ondragover={Callback::from(|event: DragEvent| {
+                            event.prevent_default();
+                        })}
+                        ondragenter={Callback::from(|event: DragEvent| {
+                            event.prevent_default();
+                        })}
+                    >
+                        <i class="fa fa-cloud-upload"></i>
+                        <p>{"Drop your file here or click to select"}</p>
+                    </div>
+                </label>
+                <input
+                    id="file-upload"
+                    type="file"
+                    accept="application/pdf"
+                    multiple={true}
+                    onchange={ctx.link().callback(move |e: Event| {
+                        let input: HtmlInputElement = e.target_unchecked_into();
+                        Self::upload_files(input.files())
+                    })}
+                />
+                <div id="preview-area">
+                    { for self.files.iter().map(Self::view_file) }
+                </div>
+            </div>
+        }
+    }
+}
+
+impl App {
+    fn view_file(file: &FileDetails) -> Html {
+        html! {
+            <div class="preview-tile">
+                <p class="preview-name">{ format!("{}", file.name) }</p>
+                <div class="preview-media">
+                    if file.file_type.contains("image") {
+                        <img src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} />
+                    } else if file.file_type.contains("video") {
+                        <video controls={true}>
+                            <source src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} type={file.file_type.clone()}/>
+                        </video>
+                    } else if file.file_type.contains("pdf") {
+                <a href ={format!("data:{};base64,{}", "text/csv", encode(parse_text(InputType::MEM(&file.data)).unwrap()))}>
+                {"Download"}
+                </a>
+            }
+                </div>
+            </div>
+        }
+    }
+
+    fn upload_files(files: Option<FileList>) -> Msg {
+        let mut result = Vec::new();
+
+        if let Some(files) = files {
+            let files = js_sys::try_iter(&files)
+                .unwrap()
+                .unwrap()
+                .map(|v| web_sys::File::from(v.unwrap()))
+                .map(File::from);
+            result.extend(files);
+        }
+        Msg::Files(result)
+    }
 }
