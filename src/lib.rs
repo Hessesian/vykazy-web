@@ -1,16 +1,16 @@
-use base64::encode;
-use gloo::file::callbacks::FileReader;
-use gloo::file::File;
-use std::collections::HashMap;
-use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
-use yew::html::TargetCast;
-use vykazy::*;
-use yew::{html, Callback, Component, Context, Html};
+use gloo_file::File;
+use viewmodel::MainScreenViewModel;
+use web_sys::FileList;
+use yew::{Component, Context, Html};
 
-struct FileDetails {
+mod interactor;
+mod main_screen;
+mod viewmodel;
+
+pub struct FileDetails {
     name: String,
     file_type: String,
-    data: Vec<u8>,
+    data: String,
 }
 
 pub enum Msg {
@@ -18,118 +18,54 @@ pub enum Msg {
     Files(Vec<File>),
 }
 
-pub struct App {
-    readers: HashMap<String, FileReader>,
-    files: Vec<FileDetails>,
+pub struct MainScreen {
+    view_model: MainScreenViewModel,
 }
 
-impl Component for App {
+impl Component for MainScreen {
     type Message = Msg;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            readers: HashMap::default(),
-            files: Vec::default(),
+            view_model: MainScreenViewModel::default(),
         }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Loaded(file_name, file_type, data) => {
-                self.files.push(FileDetails {
-                    data,
-                    file_type,
-                    name: file_name.clone(),
-                });
-                self.readers.remove(&file_name);
+                self.view_model.push(file_name, file_type, data);
                 true
             }
             Msg::Files(files) => {
-                for file in files.into_iter() {
-                    let file_name = file.name();
-                    let file_type = file.raw_mime_type();
-
-                    let task = {
-                        let link = ctx.link().clone();
-                        let file_name = file_name.clone();
-
-                        gloo::file::callbacks::read_as_bytes(&file, move |res| {
-                            link.send_message(Msg::Loaded(
-                                file_name,
-                                file_type,
-                                res.expect("failed to read file"),
-                            ))
-                        })
-                    };
-                    self.readers.insert(file_name, task);
-                }
+                let link = ctx.link().clone();
+                self.view_model.update(files, link.callback(|msg| msg));
                 true
             }
         }
     }
 
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
+        true
+    }
+
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
+
+    fn prepare_state(&self) -> Option<String> {
+        None
+    }
+
+    fn destroy(&mut self, ctx: &Context<Self>) {}
+
     fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <div id="wrapper">
-                <p id="title">{ "Timesheet Converter" }</p>
-                <label for="file-upload">
-                    <div
-                        id="drop-container"
-                        ondrop={ctx.link().callback(|event: DragEvent| {
-                            event.prevent_default();
-                            let files = event.data_transfer().unwrap().files();
-                            Self::upload_files(files)
-                        })}
-                        ondragover={Callback::from(|event: DragEvent| {
-                            event.prevent_default();
-                        })}
-                        ondragenter={Callback::from(|event: DragEvent| {
-                            event.prevent_default();
-                        })}
-                    >
-                        <i class="fa fa-cloud-upload"></i>
-                        <p>{"Drop your file here or click to select"}</p>
-                    </div>
-                </label>
-                <input
-                    id="file-upload"
-                    type="file"
-                    accept="application/pdf"
-                    multiple={true}
-                    onchange={ctx.link().callback(move |e: Event| {
-                        let input: HtmlInputElement = e.target_unchecked_into();
-                        Self::upload_files(input.files())
-                    })}
-                />
-                <div id="preview-area">
-                    { for self.files.iter().map(Self::view_file) }
-                </div>
-            </div>
-        }
+        main_screen::view(self, ctx)
     }
 }
 
-impl App {
+impl MainScreen {
     fn view_file(file: &FileDetails) -> Html {
-        html! {
-            <div class="preview-tile">
-                <p class="preview-name">{ format!("{}", file.name) }</p>
-                <div class="preview-media">
-                    if file.file_type.contains("image") {
-                        <img src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} />
-                    } else if file.file_type.contains("video") {
-                        <video controls={true}>
-                            <source src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} type={file.file_type.clone()}/>
-                        </video>
-                    } else if file.file_type.contains("pdf") {
-                <a href ={format!("data:{};base64,{}", "text/csv", encode(parse_text(InputType::MEM(&file.data)).unwrap()))}>
-                {"Download"}
-                </a>
-            }
-                </div>
-            </div>
-        }
+        main_screen::view_file(file)
     }
 
     fn upload_files(files: Option<FileList>) -> Msg {

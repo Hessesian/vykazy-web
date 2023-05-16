@@ -1,5 +1,5 @@
-use vykaz_web::App;
+use vykaz_web::MainScreen;
 
 fn main() {
-    yew::Renderer::<App>::new().render();
+    yew::Renderer::<MainScreen>::new().render();
 }
