@@ -1,8 +1,11 @@
 use std::sync::Arc;
+
 use gloo_file::File;
-use viewmodel::MainScreenViewModel;
 use web_sys::FileList;
 use yew::{Component, Context, Html};
+
+use viewmodel::MainScreenViewModel;
+
 use crate::converter::ConverterInteractor;
 
 mod converter;
@@ -20,23 +23,23 @@ pub enum Msg {
     Files(Vec<File>),
 }
 
-pub struct MainScreen<'a> {
-    view_model: MainScreenViewModel<'a>,
+pub struct MainScreen {
+    view_model: MainScreenViewModel,
 }
 
-pub trait Interactor<'a, Args, Result>{
+pub trait Interactor<Args, Result> {
     fn execute(&self, args: Args) -> Result;
 }
 
-impl Component for MainScreen<'static>{
+impl Component for MainScreen {
     type Message = Msg;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            view_model: MainScreenViewModel{
+            view_model: MainScreenViewModel {
                 state: Default::default(),
-                interactor: Box::new(ConverterInteractor{}),
+                interactor : Box::new(ConverterInteractor {}),
             },
         }
     }
@@ -72,7 +75,7 @@ impl Component for MainScreen<'static>{
     fn destroy(&mut self, ctx: &Context<Self>) {}
 }
 
-impl <'b> MainScreen<'b> {
+impl MainScreen {
     fn view_file(file: &FileDetails) -> Html {
         main_screen::view_file(file)
     }

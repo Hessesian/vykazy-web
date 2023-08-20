@@ -10,7 +10,7 @@ pub struct Args<'a>{
     pub data: &'a [u8]
 }
 
-impl <'a, 'args> Interactor<'a, Args<'args>, String> for ConverterInteractor {
+impl <'args> Interactor<Args<'args>, String> for ConverterInteractor {
     fn execute(&self, args: Args) -> String {
         match args.file_type.contains("pdf") {
             true => encode(parse_text(InputType::MEM(args.data)).unwrap()),

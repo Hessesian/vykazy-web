@@ -12,7 +12,7 @@ use crate::FileDetails;
 
 use super::MainScreen;
 
-pub fn view<'a, 'b>(app: &'a MainScreen, ctx: Scope<MainScreen<'static>>) -> Html {
+pub fn view(app: &MainScreen, ctx: Scope<MainScreen>) -> Html {
     return yew_template::template_html! {"templates/MainScreen.html",
                     ondrop={ctx.callback(|event: DragEvent| {
                         event.prevent_default();

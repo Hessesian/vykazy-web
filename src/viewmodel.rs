@@ -8,9 +8,9 @@ use yew::Callback;
 use crate::{FileDetails, Interactor, Msg};
 use crate::converter::Args;
 
-pub struct MainScreenViewModel<'a> {
+pub struct MainScreenViewModel {
     pub state: State,
-    pub interactor: Box<dyn for <'b> Interactor<'a, Args<'b>, String>>,
+    pub interactor: Box<dyn for <'a> Interactor<Args<'a>, String>>,
 }
 #[derive(Default)]
 pub struct State {
@@ -18,7 +18,7 @@ pub struct State {
     pub files: Vec<FileDetails>,
 }
 
-impl <'a> MainScreenViewModel<'a> {
+impl MainScreenViewModel {
     pub(crate) fn push(&mut self, file_name: String, file_type: String, data: Vec<u8>) {
         let data = self.interactor.execute(Args{ file_type: &file_type, data: &data });
         self.state.files.push(FileDetails {
