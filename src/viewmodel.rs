@@ -1,15 +1,16 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use gloo::file::File;
 use gloo_file::callbacks::FileReader;
 use yew::Callback;
 
-use crate::{interactor, FileDetails, Msg};
+use crate::{FileDetails, Interactor, Msg};
+use crate::converter::Args;
 
-#[derive(Default)]
-pub struct MainScreenViewModel {
+pub struct MainScreenViewModel<'a> {
     pub state: State,
-    interactor: interactor::ConverterInteractor,
+    pub interactor: Box<dyn for <'b> Interactor<'a, Args<'b>, String>>,
 }
 #[derive(Default)]
 pub struct State {
@@ -17,9 +18,9 @@ pub struct State {
     pub files: Vec<FileDetails>,
 }
 
-impl MainScreenViewModel {
+impl <'a> MainScreenViewModel<'a> {
     pub(crate) fn push(&mut self, file_name: String, file_type: String, data: Vec<u8>) {
-        let data = self.interactor.convert(&file_type, &data);
+        let data = self.interactor.execute(Args{ file_type: &file_type, data: &data });
         self.state.files.push(FileDetails {
             data,
             file_type,
