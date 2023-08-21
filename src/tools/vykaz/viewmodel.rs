@@ -1,12 +1,10 @@
 use std::collections::HashMap;
-use std::sync::Arc;
-
 use gloo::file::File;
 use gloo_file::callbacks::FileReader;
 use yew::Callback;
+use crate::tools::vykaz::converter::Args;
+use crate::tools::vykaz::vykaz_component::{FileDetails, Interactor, Msg};
 
-use crate::{FileDetails, Interactor, Msg};
-use crate::converter::Args;
 
 pub struct MainScreenViewModel {
     pub state: State,

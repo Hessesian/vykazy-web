@@ -1,21 +1,15 @@
-use std::sync::Arc;
-
 use gloo_file::File;
 use web_sys::FileList;
 use yew::{Component, Context, Html};
+use crate::tools::vykaz::converter::ConverterInteractor;
+use crate::tools::vykaz::main_screen;
+use crate::tools::vykaz::viewmodel::MainScreenViewModel;
 
-use viewmodel::MainScreenViewModel;
-
-use crate::converter::ConverterInteractor;
-
-mod converter;
-mod main_screen;
-mod viewmodel;
 
 pub struct FileDetails {
-    name: String,
-    file_type: String,
-    data: String,
+    pub name: String,
+    pub file_type: String,
+    pub data: String,
 }
 
 pub enum Msg {
@@ -24,7 +18,7 @@ pub enum Msg {
 }
 
 pub struct MainScreen {
-    view_model: MainScreenViewModel,
+    pub view_model: MainScreenViewModel,
 }
 
 pub trait Interactor<Args, Result> {
@@ -39,7 +33,7 @@ impl Component for MainScreen {
         Self {
             view_model: MainScreenViewModel {
                 state: Default::default(),
-                interactor : Box::new(ConverterInteractor {}),
+                interactor: Box::new(ConverterInteractor {}),
             },
         }
     }
@@ -76,11 +70,11 @@ impl Component for MainScreen {
 }
 
 impl MainScreen {
-    fn view_file(file: &FileDetails) -> Html {
+    pub fn view_file(file: &FileDetails) -> Html {
         main_screen::view_file(file)
     }
 
-    fn upload_files(files: Option<FileList>) -> Msg {
+    pub fn upload_files(files: Option<FileList>) -> Msg {
         let mut result = Vec::new();
 
         if let Some(files) = files {
