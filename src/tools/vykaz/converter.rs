@@ -15,7 +15,7 @@ impl<'args> Interactor<Args<'args>, String> for ConverterInteractor {
     fn execute(&self, args: Args) -> String {
         match args.file_type.contains("pdf") {
             true => encode(parse_text(InputType::MEM(args.data)).unwrap()),
-            false => encode(&args.data),
+            false => encode(args.data),
         }
     }
 }

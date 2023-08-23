@@ -1,29 +1,31 @@
-<div>
+<div class="hero is-fullheight">
     <header class="header">
         <nav class="navbar" role="navigation" aria-label="main navigation">
             <div class="navbar-brand">
                 <a class="navbar-item logo" href="#">
-                    Your Blog
+                    Dev Blog
                 </a>
             </div>
             <div class="navbar-menu">
                 <div class="navbar-end">
-                    <a class="navbar-item" href="#">Homee</a>
                     {{tools}}
-                    <a class="navbar-item" href="#">About</a>
-                    <a class="navbar-item" href="#">Contact</a>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="card post-card">
+    <figure class="image is-16by9 m-6">
+        <iframe title="banger" class="has-ratio" width="640" height="360" src="https://www.youtube.com/embed/6f_PTvFIPKg" allowfullscreen></iframe>
+    </figure>
+    <div class="card post-card is-halfheight m-6">
         <div class="card-image">
-
+            <figure class="image is-128x128 m-2">
+                <img alt="icon" src="https://static.vecteezy.com/system/resources/previews/000/356/538/original/construction-house-vector-icon.jpg"/>
+            </figure>
         </div>
         <div class="card-content">
-            <h2 class="title is-4 post-title">Post Titles</h2>
-            <p class="subtitle is-6 post-excerpt">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            <a href="#" class="button is-link read-more">Read more</a>
+            <h2 class="title is-4 post-title m-2">Coming soon!</h2>
+            <p class="subtitle is-6 post-excerpt m-2">Blog site is in preparation, powered by Yew + Wasm + Rust</p>
+            <a href="#" class="button is-link read-more m-2">Read more</a>
         </div>
     </div>
     <footer class="footer">

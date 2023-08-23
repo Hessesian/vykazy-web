@@ -2,7 +2,7 @@ use gloo_file::File;
 use web_sys::FileList;
 use yew::{Component, Context, Html};
 use crate::tools::vykaz::converter::ConverterInteractor;
-use crate::tools::vykaz::main_screen;
+use crate::tools::vykaz::converter_screen;
 use crate::tools::vykaz::viewmodel::MainScreenViewModel;
 
 
@@ -57,7 +57,7 @@ impl Component for MainScreen {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        main_screen::view(self, ctx.link().clone())
+        converter_screen::view(self, ctx.link().clone())
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
@@ -71,7 +71,7 @@ impl Component for MainScreen {
 
 impl MainScreen {
     pub fn view_file(file: &FileDetails) -> Html {
-        main_screen::view_file(file)
+        converter_screen::view_file(file)
     }
 
     pub fn upload_files(files: Option<FileList>) -> Msg {

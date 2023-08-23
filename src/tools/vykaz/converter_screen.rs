@@ -2,15 +2,15 @@ use web_sys::DragEvent;
 use web_sys::Event;
 use web_sys::HtmlInputElement;
 use yew::Callback;
-use yew::Context;
 use yew::html;
 use yew::Html;
 use yew::html::Scope;
 use yew::TargetCast;
+use yew_template::template_html;
 use crate::tools::vykaz::vykaz_component::{FileDetails, MainScreen};
 
 pub fn view(app: &MainScreen, ctx: Scope<MainScreen>) -> Html {
-    return yew_template::template_html! {"src/templates/MainScreen.html",
+    template_html! {"src/templates/Converter.html",
                     ondrop={ctx.callback(|event: DragEvent| {
                         event.prevent_default();
                         let files = event.data_transfer().unwrap().files();

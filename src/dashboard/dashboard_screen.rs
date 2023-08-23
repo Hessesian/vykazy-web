@@ -5,8 +5,8 @@ use crate::Route;
 
 #[function_component(Dashboard)]
 pub fn dashboard() -> Html {
-    return yew_template::template_html! {"src/templates/Dashboard.html",
-                    tools = {route_tools()}};
+    template_html! {"src/templates/Dashboard.html",
+                    tools = {route_tools()}}
 }
 
 fn route_tools() -> Html {
